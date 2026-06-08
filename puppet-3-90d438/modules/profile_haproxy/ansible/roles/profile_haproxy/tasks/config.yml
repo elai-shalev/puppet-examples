@@ -1,0 +1,53 @@
+---
+- name: Deploy main HAProxy configuration file
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: "{{ config_file }}"
+    owner: root
+    group: "{{ group }}"
+    mode: "0640"
+  notify: restart haproxy service
+- name: Create HAProxy errors directory
+  ansible.builtin.file:
+    path: "{{ config_dir }}/errors"
+    state: directory
+    owner: root
+    group: "{{ group }}"
+    mode: "0755"
+- name: Deploy HAProxy error pages
+  ansible.builtin.copy:
+    src: haproxy_errors/{{ item }}.http
+    dest: "{{ config_dir }}/errors/{{ item }}.http"
+    owner: root
+    group: "{{ group }}"
+    mode: "0644"
+  loop:
+    - "503"
+    - "408"
+- name: Deploy backend configurations
+  ansible.builtin.template:
+    src: backend.conf.j2
+    dest: "{{ config_dir }}/conf.d/{{ backend_name }}.cfg"
+    owner: root
+    group: "{{ group }}"
+    mode: "0640"
+  vars:
+    backend_name: "{{ item.key }}"
+    balance: "{{ item.value.balance }}"
+    port: "{{ item.value.port }}"
+    servers: "{{ item.value.servers }}"
+    health_check: "{{ item.value.health_check | default(omit) }}"
+    health_interval: "{{ item.value.health_interval | default(omit) }}"
+  loop: "{{ backends | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: restart haproxy service
+- name: Deploy stick-table configuration
+  ansible.builtin.copy:
+    content: "# Managed by Ansible stick-table type ip size {{ stick_table_size }} expire {{ stick_table_expire }} "
+    dest: "{{ config_dir }}/conf.d/stick-tables.cfg"
+    owner: root
+    group: "{{ group }}"
+    mode: "0640"
+  when: stick_table_enabled | default(false) | bool
+  notify: restart haproxy service

@@ -1,0 +1,28 @@
+---
+- name: Install UFW package
+  ansible.builtin.package:
+    name: ufw
+    state: present
+  when: firewall_provider | default('ufw') == 'ufw'
+- name: Allow HTTP traffic (port 80)
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+  when: firewall_provider | default('ufw') == 'ufw'
+- name: Allow HTTPS traffic (port 443)
+  community.general.ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+  when: firewall_provider | default('ufw') == 'ufw' and ssl_enabled | bool
+- name: Allow HAProxy stats traffic
+  community.general.ufw:
+    rule: allow
+    port: "{{ stats_port }}"
+    proto: tcp
+  when: firewall_provider | default('ufw') == 'ufw' and stats_enabled | bool
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+  when: firewall_provider | default('ufw') == 'ufw'

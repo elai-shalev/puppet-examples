@@ -1,0 +1,14 @@
+---
+- name: restart haproxy
+  ansible.builtin.service:
+    name: "{{ service_name }}"
+    state: restarted
+  listen: restart haproxy service
+- name: reload haproxy
+  ansible.builtin.service:
+    name: "{{ service_name }}"
+    state: reloaded
+  listen: reload haproxy service
+- name: reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Exit if not on Linux
+if [ "$(uname -s)" != "Linux" ]; then
+  echo "{}"
+  exit 0
+fi
+
+# Get HAProxy version
+HAPROXY_VERSION=$(haproxy -v 2>/dev/null | grep -oP 'version\s+\K(\d+\.\d+\.\d+)' || echo "")
+
+# Output as JSON
+if [ -n "$HAPROXY_VERSION" ]; then
+  echo "{\"haproxy_version\": \"$HAPROXY_VERSION\"}"
+else
+  echo "{\"haproxy_version\": null}"
+fi

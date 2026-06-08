@@ -1,0 +1,8 @@
+roles:
+- name: geerlingguy.firewall
+  version: 3.0.0
+collections:
+- name: ansible.posix
+  version: 1.5.1
+- name: community.general
+  version: 6.6.0
